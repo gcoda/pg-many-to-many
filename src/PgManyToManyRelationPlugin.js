@@ -17,9 +17,11 @@ module.exports = function PgManyToManyRelationPlugin(
         junctionRightKeys,
         _rightKeys,
         junctionTable,
-        rightTable
+        rightTable,
+        fieldName
       ) {
-        return this.camelCase(
+        
+        return fieldName || this.camelCase(
           `${this.pluralize(
             this._singularizedTableName(rightTable)
           )}-by-${this._singularizedTableName(junctionTable)}-${[
@@ -177,6 +179,12 @@ module.exports = function PgManyToManyRelationPlugin(
             return memo;
           }
 
+          const leftAttributes = junctionLeftConstraint
+            .keyAttributes
+            .filter(attribute => attribute.tags.manyToMany)
+          const attribute = leftAttributes[0]
+          const fieldName = attribute && attribute.tags.manyToMany
+
           function makeFields(isConnection) {
             const manyRelationFieldName = isConnection
               ? inflection.manyToManyRelationByKeys(
@@ -185,7 +193,8 @@ module.exports = function PgManyToManyRelationPlugin(
                   junctionRightKeys,
                   rightKeys,
                   junctionTable,
-                  rightTable
+                  rightTable,
+                  fieldName
                 )
               : inflection.manyToManyRelationByKeysSimple(
                   leftKeys,
@@ -193,9 +202,9 @@ module.exports = function PgManyToManyRelationPlugin(
                   junctionRightKeys,
                   rightKeys,
                   junctionTable,
-                  rightTable
+                  rightTable,
+                  fieldName
                 );
-
             memo = extend(
               memo,
               {
